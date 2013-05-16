@@ -51,10 +51,20 @@ public class Html {
 			
 			Object[] modules = this.modules.values().toArray();
 			Arrays.sort(modules);
+			
+			int totalModules = 0;
+			int totalCorrectModules = 0;
+			int totalFunctionCalls = 0;
+			int totalTracableFunctionCalls = 0;
 			for(Object moduleO : modules) {
 				RequireJsModule module = (RequireJsModule) moduleO;
+				if(module.getId().indexOf("thirdparty") == 0) {
+					continue;
+				}
 				int numModules = module.getNamedDependencies().size();
 				int numCorrectModules = getNumCorrectImports(module);
+				totalModules += numModules;
+				totalCorrectModules += numCorrectModules;
 				
 				int importsGreenWidth = width;
 				if(numModules > 0) {
@@ -63,6 +73,8 @@ public class Html {
 				
 				int numFunctionCalls = module.getFunctionCalls().size();
 				int numTraceableFunctionCalls = getNumCorrectFunctionCalls(module);
+				totalFunctionCalls += numFunctionCalls;
+				totalTracableFunctionCalls += numTraceableFunctionCalls;
 				
 				int functionsGreenWidth = width;
 				if(numFunctionCalls > 0) {
@@ -80,6 +92,21 @@ public class Html {
 				out.write("</td></tr>");
 			}
 			
+			int importsGreenWidth = width;
+			if(totalModules > 0) {
+				importsGreenWidth = (width * totalCorrectModules) / totalModules;
+			}
+			int functionsGreenWidth = width;
+			if(totalFunctionCalls > 0) {
+				functionsGreenWidth = (width * totalTracableFunctionCalls) / totalFunctionCalls;
+			}
+			out.write("<tr><td><strong>Total</strong></td><td><img src=\"green.gif\" height=10 width=" + importsGreenWidth + ">");
+			out.write("<img src=\"red.gif\" height=10 width=" + (width - importsGreenWidth) + ">");
+			out.write(totalCorrectModules + "/" + totalModules);
+			out.write("</td><td><img src=\"green.gif\" height=10 width=" + functionsGreenWidth + ">");
+			out.write("<img src=\"red.gif\" height=10 width=" + (width - functionsGreenWidth) + ">");
+			out.write(totalTracableFunctionCalls + "/" + totalFunctionCalls);
+			out.write("</td></tr>");
 			out.write("</table></body></html>");
 			out.flush();
 			out.close();
@@ -108,6 +135,7 @@ public class Html {
 		knownNames.add("exports");
 		knownNames.add("module");
 		knownNames.add("window");
+		knownNames.add("console");
 		knownNames.add("$");
 		knownNames.add("jQuery");
 		
