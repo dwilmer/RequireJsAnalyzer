@@ -10,12 +10,14 @@ public class RequireJsModule implements Comparable<RequireJsModule> {
 	private Map<String, RequireJsModule> namedDependencies;
 	private List<RequireJsModule> anonDependencies;
 	private List<FunctionReference> functionCalls;
+	private Map<String, List<Integer>> definitions;
 	
 	public RequireJsModule(String id) {
 		this.id = id;
 		this.namedDependencies = new HashMap<String, RequireJsModule>();
 		this.anonDependencies = new LinkedList<RequireJsModule>();
 		this.functionCalls = new LinkedList<FunctionReference>();
+		this.definitions = new HashMap<String, List<Integer>>();
 	}
 	
 	public void addDependency(RequireJsModule dependency) {
@@ -49,12 +51,21 @@ public class RequireJsModule implements Comparable<RequireJsModule> {
 		return this.namedDependencies.get(varName);
 	}
 	
-	public void addFunctionCall(String objectName, String functionName) {
-		this.functionCalls.add(new FunctionReference(objectName, functionName));
+	public void addFunctionCall(FunctionReference ref) {
+		this.functionCalls.add(ref);
 	}
 	
 	public List<FunctionReference> getFunctionCalls() {
 		return this.functionCalls;
+	}
+	
+	public void addVariableDefinition(int lineNumber, String varName) {
+		List<Integer> defs = this.definitions.get(varName); 
+		if(defs == null) {
+			defs = new LinkedList<Integer>();
+			this.definitions.put(varName, defs);
+		}
+		defs.add(lineNumber);
 	}
 	
 	public String getTreeString(int indent) {
