@@ -10,12 +10,14 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import model.FunctionReference;
 import model.RequireJsModule;
 import model.Tupel;
 
 public class Extractor {
 	private static Pattern NAMED_REQUIRE_REGEX = Pattern.compile("([a-zA-Z][a-zA-Z0-9]*)[\\s]*= require\\(\"(.*)\"\\)(\\.)?");
 	private static Pattern ANON_REQUIRE_REGEX = Pattern.compile("^[\\s]*require\\(\"(.*)\"\\)");
+	private static Pattern FUNCTIONCALL_REGEX = Pattern.compile("[\\W]([a-zA-Z$_][a-zA-Z0-9$_]*).([a-zA-Z$_][a-zA-Z0-9$_]*)\\(");
 	private Set<String> traversedFiles;
 	private String baseFolder;
 	
@@ -52,10 +54,10 @@ public class Extractor {
 		}
 		
 		// read module
-		Queue<Tupel<String,String>> dependencies = readModule(id);
+		ReadResults results = readModule(id);
 		
 		// extract dependencies
-		for (Tupel<String,String> dependency : dependencies) {
+		for (Tupel<String,String> dependency : results.dependencies) {
 			RequireJsModule depModule = extractModules(dependency.b);
 			if(depModule != null) {
 				if(dependency.a != null) 
@@ -64,12 +66,15 @@ public class Extractor {
 					module.addDependency(depModule);
 			}
 		}
+		for (Tupel<String,String> functionCall : results.functionCalls) {
+			module.addFunctionCall(functionCall.a, functionCall.b);
+		}
 		
 		return module;
 	}
 	
-	private Queue<Tupel<String,String>> readModule(String id) {
-		Queue<Tupel<String,String>> dependencies = new LinkedList<Tupel<String,String>>();
+	private ReadResults readModule(String id) {
+		ReadResults results = new ReadResults();
 		try {
 			String filename = this.baseFolder + id + ".js";
 			BufferedReader reader = new BufferedReader(new FileReader(filename));
@@ -98,7 +103,12 @@ public class Extractor {
 						}
 					}
 					if(dependency != null) {
-						dependencies.add(new Tupel<String,String>(varName, dependency));
+						results.dependencies.add(new Tupel<String,String>(varName, dependency));
+					}
+					
+					match = FUNCTIONCALL_REGEX.matcher(line);
+					if(match.find()) {
+						results.functionCalls.add(new Tupel<String, String>(match.group(1), match.group(2)));
 					}
 				}
 			} while (line != null);
@@ -107,6 +117,6 @@ public class Extractor {
 		} catch (IOException iox) {
 			iox.printStackTrace();
 		}
-		return dependencies;
+		return results;
 	}
 }
