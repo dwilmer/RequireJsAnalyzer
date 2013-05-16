@@ -43,7 +43,8 @@ public class Html {
 		try {
 			BufferedWriter out = new BufferedWriter(new FileWriter(filename));
 			out.write("<!doctype html>");
-			out.write("<html><head><title>Brackets analyzability</title><style type=\"text/css\"></style></head><body><h1>Brackets</h1><ul>");
+			out.write("<html><head><title>Brackets analyzability</title><style type=\"text/css\"></style></head><body><h1>Brackets</h1>");
+			out.write("<table border=0><tr><th>Module</th><th>Module/variable naming</th></tr>");
 			
 			Object[] modules = this.modules.values().toArray();
 			Arrays.sort(modules);
@@ -63,15 +64,15 @@ public class Html {
 				if(numModules > 0) {
 					greenWidth = (width * numCorrectModules) / numModules;
 				}
-				out.write("<li>");
+				out.write("<tr><td>");
 				out.write(module.getId());
-				out.write(": <img src=\"green.gif\" height=10 width=" + greenWidth + ">");
+				out.write("</td><td><img src=\"green.gif\" height=10 width=" + greenWidth + ">");
 				out.write("<img src=\"red.gif\" height=10 width=" + (width - greenWidth) + ">");
 				out.write(numCorrectModules + "/" + numModules);
-				out.write("</li>");
+				out.write("</td></tr>");
 			}
 			
-			out.write("</ul></body></html>");
+			out.write("</table></body></html>");
 			out.flush();
 			out.close();
 		} catch (IOException iox) {
