@@ -11,9 +11,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import model.RequireJsModule;
+import model.Tupel;
 
 public class Extractor {
-	private static Pattern REQUIRE_REGEX = Pattern.compile("require\\(\"(.*)\"\\)");
+	private static Pattern NAMED_REQUIRE_REGEX = Pattern.compile("([a-zA-Z][a-zA-Z0-9]*)[\\s]*= require\\(\"(.*)\"\\)");
+	private static Pattern ANON_REQUIRE_REGEX = Pattern.compile("^[\\s]*require\\(\"(.*)\"\\)");
 	private Set<String> traversedFiles;
 	
 	/**
@@ -41,21 +43,24 @@ public class Extractor {
 		}
 		
 		// read module
-		Queue<String> dependencies = readModule(id);
+		Queue<Tupel<String,String>> dependencies = readModule(id);
 		
 		// extract dependencies
-		for (String dependency : dependencies) {
-			RequireJsModule depModule = extractModules(dependency);
+		for (Tupel<String,String> dependency : dependencies) {
+			RequireJsModule depModule = extractModules(dependency.getB());
 			if(depModule != null) {
-				module.addDependency(depModule);
+				if(dependency.getA() != null) 
+					module.addDependency(dependency.getA(), depModule);
+				else
+					module.addDependency(depModule);
 			}
 		}
 		
 		return module;
 	}
 	
-	private Queue<String> readModule(String id) {
-		Queue<String> dependencies = new LinkedList<String>();
+	private Queue<Tupel<String,String>> readModule(String id) {
+		Queue<Tupel<String,String>> dependencies = new LinkedList<Tupel<String,String>>();
 		try {
 			String filename = id + ".js";
 			BufferedReader reader = new BufferedReader(new FileReader(filename));
@@ -64,12 +69,27 @@ public class Extractor {
 			do {
 				line = reader.readLine();
 				if(line != null) {
-					Matcher match = REQUIRE_REGEX.matcher(line);
+					String varName = null;
+					String dependency = null;
+					
+					Matcher match = NAMED_REQUIRE_REGEX.matcher(line);
 					if(match.find()) {
-						String dependency = match.group(1);
-						if(!dependency.startsWith("text!") && !dependency.startsWith("i18n!")) {
-							dependencies.add(dependency);
+						varName = match.group(1);
+						String tentativeDependency = match.group(2);
+						if(!tentativeDependency .startsWith("text!") && !tentativeDependency .startsWith("i18n!")) {
+							dependency = tentativeDependency;
 						}
+					} else {
+						match = ANON_REQUIRE_REGEX.matcher(line);
+						if(match.find()) {
+							String tentativeDependency = match.group(1);
+							if(!tentativeDependency .startsWith("text!") && !tentativeDependency .startsWith("i18n!")) {
+								dependency = tentativeDependency;
+							}
+						}
+					}
+					if(dependency != null) {
+						dependencies.add(new Tupel<String,String>(varName, dependency));
 					}
 				}
 			} while (line != null);
