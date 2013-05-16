@@ -32,7 +32,7 @@ public class Extractor {
 		}
 		Extractor extract = new Extractor(baseFolder);
 		RequireJsModule tree = extract.extractModules(filename);
-		System.out.println(tree.toString());
+		System.out.println(tree.getTreeString(0));
 	}
 	
 	public Extractor(String baseFolder) {
@@ -87,7 +87,6 @@ public class Extractor {
 						String tentativeDependency = match.group(2);
 						if(!tentativeDependency.startsWith("text!") && !tentativeDependency .startsWith("i18n!")) {
 							dependency = tentativeDependency;
-							System.out.println("In " + id + ": " + varName + " => " + dependency);
 						}
 					} else {
 						match = ANON_REQUIRE_REGEX.matcher(line);
