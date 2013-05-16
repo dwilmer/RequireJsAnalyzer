@@ -68,6 +68,10 @@ public class RequireJsModule implements Comparable<RequireJsModule> {
 		defs.add(lineNumber);
 	}
 	
+	public Map<String, List<Integer>> getVariableDefinitions() {
+		return this.definitions;
+	}
+	
 	public String getTreeString(int indent) {
 		StringBuilder treeStringBuilder = new StringBuilder();
 		for(int i = 0; i < indent; i++) {
