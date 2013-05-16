@@ -5,7 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-public class RequireJsModule {
+public class RequireJsModule implements Comparable<RequireJsModule> {
 	private String id;
 	private Map<String, RequireJsModule> namedDependencies;
 	private List<RequireJsModule> anonDependencies;
@@ -76,5 +76,10 @@ public class RequireJsModule {
 	
 	public int hashCode() {
 		return this.id.hashCode();
+	}
+
+	@Override
+	public int compareTo(RequireJsModule o) {
+		return this.id.compareTo(o.id);
 	}
 }
