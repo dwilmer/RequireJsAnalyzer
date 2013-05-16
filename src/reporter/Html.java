@@ -66,53 +66,42 @@ public class Html {
 				totalModules += numModules;
 				totalCorrectModules += numCorrectModules;
 				
-				int importsGreenWidth = width;
-				if(numModules > 0) {
-					importsGreenWidth = (width * numCorrectModules) / numModules;
-				}
-				
 				int numFunctionCalls = module.getFunctionCalls().size();
 				int numTraceableFunctionCalls = getNumCorrectFunctionCalls(module);
 				totalFunctionCalls += numFunctionCalls;
 				totalTracableFunctionCalls += numTraceableFunctionCalls;
 				
-				int functionsGreenWidth = width;
-				if(numFunctionCalls > 0) {
-					functionsGreenWidth = (width * numTraceableFunctionCalls) / numFunctionCalls;
-				}
-				
 				out.write("<tr><td>");
 				out.write(module.getId());
-				out.write("</td><td><img src=\"green.gif\" height=10 width=" + importsGreenWidth + ">");
-				out.write("<img src=\"red.gif\" height=10 width=" + (width - importsGreenWidth) + ">");
-				out.write(numCorrectModules + "/" + numModules);
-				out.write("</td><td><img src=\"green.gif\" height=10 width=" + functionsGreenWidth + ">");
-				out.write("<img src=\"red.gif\" height=10 width=" + (width - functionsGreenWidth) + ">");
-				out.write(numTraceableFunctionCalls + "/" + numFunctionCalls);
-				out.write("</td></tr>");
+				out.write("</td>");
+				
+				printBar(out, numModules, numCorrectModules, width);
+				printBar(out, numTraceableFunctionCalls, numFunctionCalls, width);
+				out.write("</tr>");
 			}
 			
-			int importsGreenWidth = width;
-			if(totalModules > 0) {
-				importsGreenWidth = (width * totalCorrectModules) / totalModules;
-			}
-			int functionsGreenWidth = width;
-			if(totalFunctionCalls > 0) {
-				functionsGreenWidth = (width * totalTracableFunctionCalls) / totalFunctionCalls;
-			}
-			out.write("<tr><td><strong>Total</strong></td><td><img src=\"green.gif\" height=10 width=" + importsGreenWidth + ">");
-			out.write("<img src=\"red.gif\" height=10 width=" + (width - importsGreenWidth) + ">");
-			out.write(totalCorrectModules + "/" + totalModules);
-			out.write("</td><td><img src=\"green.gif\" height=10 width=" + functionsGreenWidth + ">");
-			out.write("<img src=\"red.gif\" height=10 width=" + (width - functionsGreenWidth) + ">");
-			out.write(totalTracableFunctionCalls + "/" + totalFunctionCalls);
-			out.write("</td></tr>");
-			out.write("</table></body></html>");
+			out.write("<tr><td><strong>Total</strong></td>");
+			printBar(out, totalCorrectModules, totalModules, width);
+			printBar(out, totalTracableFunctionCalls, totalFunctionCalls, width);
+			out.write("</tr></table></body></html>");
 			out.flush();
 			out.close();
 		} catch (IOException iox) {
 			iox.printStackTrace();
 		}
+	}
+
+	public int printBar(BufferedWriter out, int number, int total, int barWidth)
+			throws IOException {
+		int importsGreenWidth = barWidth;
+		if(number > 0) {
+			importsGreenWidth = (barWidth * total) / number;
+		}
+		out.write("<td><img src=\"green.gif\" height=10 width=" + importsGreenWidth + ">");
+		out.write("<img src=\"red.gif\" height=10 width=" + (barWidth - importsGreenWidth) + ">");
+		out.write(total + "/" + number);
+		out.write("</td>");
+		return importsGreenWidth;
 	}
 
 	private int getNumCorrectImports(RequireJsModule module) {
