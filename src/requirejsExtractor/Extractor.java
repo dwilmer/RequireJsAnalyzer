@@ -18,6 +18,7 @@ public class Extractor {
 	private static Pattern NAMED_REQUIRE_REGEX = Pattern.compile("([a-zA-Z][a-zA-Z0-9]*)[\\s]*= require\\(\"(.*)\"\\)(\\.)?");
 	private static Pattern ANON_REQUIRE_REGEX = Pattern.compile("^[\\s]*require\\(\"(.*)\"\\)");
 	private static Pattern FUNCTIONCALL_REGEX = Pattern.compile("[\\s(]([a-zA-Z$_][a-zA-Z0-9$_]*)\\.([a-zA-Z$_][a-zA-Z0-9$_]*)\\(");
+	private static Pattern VARDEF_REGEX = Pattern.compile("[\\s]([a-zA-Z$_][a-zA-Z0-9$_]*)[\\s]*=");
 	private Set<String> traversedFiles;
 	private String baseFolder;
 	
@@ -33,9 +34,13 @@ public class Extractor {
 		for(Tupel<String, String> required : results.dependencies) {
 			System.out.println(" - " + required.a);
 		}
-		System.out.println("Found:");
-		for(Tupel<String, String> functionCall: results.functionCalls) {
-			System.out.println(" - " + functionCall.a + "." + functionCall.b + "()");
+		System.out.println("Defined:");
+		for(Tupel<Integer, String> required : results.definitions) {
+			System.out.println(" - " + required.b);
+		}
+		System.out.println("Called:");
+		for(Tupel<Integer,Tupel<String, String>> functionCall: results.functionCalls) {
+			System.out.println(" - " + functionCall.b.a + "." + functionCall.b.b + "()");
 		}
 	}
 	
@@ -81,8 +86,8 @@ public class Extractor {
 					module.addDependency(depModule);
 			}
 		}
-		for (Tupel<String,String> functionCall : results.functionCalls) {
-			module.addFunctionCall(functionCall.a, functionCall.b);
+		for (Tupel<Integer, Tupel<String,String>> functionCall : results.functionCalls) {
+			module.addFunctionCall(functionCall.b.a, functionCall.b.b);
 		}
 		
 		return module;
@@ -95,8 +100,10 @@ public class Extractor {
 			BufferedReader reader = new BufferedReader(new FileReader(filename));
 			
 			String line = null;
+			int lineNumber = 0;
 			do {
 				line = reader.readLine();
+				lineNumber++;
 				if(line != null) {
 					String varName = null;
 					String dependency = null;
@@ -121,9 +128,17 @@ public class Extractor {
 						results.dependencies.add(new Tupel<String,String>(varName, dependency));
 					}
 					
+					match = VARDEF_REGEX.matcher(line);
+					if(match.find()) {
+						String defined = match.group(1);
+						if(varName == null || !varName.equals(defined)) {
+							results.definitions.add(new Tupel<Integer, String>(lineNumber, match.group(1)));
+						}
+					}
+					
 					match = FUNCTIONCALL_REGEX.matcher(line);
 					if(match.find()) {
-						results.functionCalls.add(new Tupel<String, String>(match.group(1), match.group(2)));
+						results.functionCalls.add(new Tupel<Integer, Tupel<String, String>>(lineNumber, new Tupel<String, String>(match.group(1), match.group(2))));
 					}
 				}
 			} while (line != null);
