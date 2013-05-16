@@ -17,18 +17,27 @@ public class Extractor {
 	private static Pattern NAMED_REQUIRE_REGEX = Pattern.compile("([a-zA-Z][a-zA-Z0-9]*)[\\s]*= require\\(\"(.*)\"\\)");
 	private static Pattern ANON_REQUIRE_REGEX = Pattern.compile("^[\\s]*require\\(\"(.*)\"\\)");
 	private Set<String> traversedFiles;
+	private String baseFolder;
 	
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		Extractor extract = new Extractor();
-		RequireJsModule tree = extract.extractModules("brackets");
+		String filename = args[0];
+		String baseFolder = "";
+		int slashIndex = filename.lastIndexOf('/'); 
+		if(slashIndex >= 0) {
+			baseFolder = filename.substring(0, slashIndex + 1);
+			filename = filename.substring(slashIndex + 1);
+		}
+		Extractor extract = new Extractor(baseFolder);
+		RequireJsModule tree = extract.extractModules(filename);
 		System.out.println(tree.toString());
 	}
 	
-	public Extractor() {
+	public Extractor(String baseFolder) {
 		this.traversedFiles = new HashSet<String>();
+		this.baseFolder = baseFolder;
 	}
 	
 	public RequireJsModule extractModules(String id) {
@@ -47,10 +56,10 @@ public class Extractor {
 		
 		// extract dependencies
 		for (Tupel<String,String> dependency : dependencies) {
-			RequireJsModule depModule = extractModules(dependency.getB());
+			RequireJsModule depModule = extractModules(dependency.b);
 			if(depModule != null) {
-				if(dependency.getA() != null) 
-					module.addDependency(dependency.getA(), depModule);
+				if(dependency.a != null) 
+					module.addDependency(dependency.a, depModule);
 				else
 					module.addDependency(depModule);
 			}
@@ -62,7 +71,7 @@ public class Extractor {
 	private Queue<Tupel<String,String>> readModule(String id) {
 		Queue<Tupel<String,String>> dependencies = new LinkedList<Tupel<String,String>>();
 		try {
-			String filename = id + ".js";
+			String filename = this.baseFolder + id + ".js";
 			BufferedReader reader = new BufferedReader(new FileReader(filename));
 			
 			String line = null;
@@ -76,8 +85,9 @@ public class Extractor {
 					if(match.find()) {
 						varName = match.group(1);
 						String tentativeDependency = match.group(2);
-						if(!tentativeDependency .startsWith("text!") && !tentativeDependency .startsWith("i18n!")) {
+						if(!tentativeDependency.startsWith("text!") && !tentativeDependency .startsWith("i18n!")) {
 							dependency = tentativeDependency;
+							System.out.println("In " + id + ": " + varName + " => " + dependency);
 						}
 					} else {
 						match = ANON_REQUIRE_REGEX.matcher(line);
