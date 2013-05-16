@@ -1,19 +1,27 @@
 package model;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 public class RequireJsModule {
 	private String id;
-	private List<RequireJsModule> dependencies;
+	private Map<String, RequireJsModule> namedDependencies;
+	private List<RequireJsModule> anonDependencies;
 	
 	public RequireJsModule(String id) {
 		this.id = id;
-		this.dependencies = new LinkedList<RequireJsModule>();
+		this.namedDependencies = new HashMap<String, RequireJsModule>();
+		this.anonDependencies = new LinkedList<RequireJsModule>();
 	}
 	
 	public void addDependency(RequireJsModule dependency) {
-		this.dependencies.add(dependency);
+		this.anonDependencies.add(dependency);
+	}
+	
+	public void addDependency(String varName, RequireJsModule dependency) {
+		this.namedDependencies.put(varName, dependency);
 	}
 	
 	public String getId() {
@@ -21,7 +29,22 @@ public class RequireJsModule {
 	}
 	
 	public List<RequireJsModule> getDependencies() {
-		return this.dependencies;
+		List<RequireJsModule> allDependencies = new LinkedList<RequireJsModule>();
+		allDependencies.addAll(anonDependencies);
+		allDependencies.addAll(namedDependencies.values());
+		return allDependencies;
+	}
+	
+	public Map<String, RequireJsModule> getNamedDependencies() {
+		return this.namedDependencies;
+	}
+	
+	public List<RequireJsModule> getAnonDependencies() {
+		return this.anonDependencies;
+	}
+	
+	public RequireJsModule getModule(String varName) {
+		return this.namedDependencies.get(varName);
 	}
 	
 	public String getTreeString(int indent) {
@@ -32,7 +55,7 @@ public class RequireJsModule {
 		treeStringBuilder.append(this.id);
 		treeStringBuilder.append('\n');
 		
-		for (RequireJsModule dependency : this.dependencies) {
+		for (RequireJsModule dependency : this.getDependencies()) {
 			treeStringBuilder.append(dependency.getTreeString(indent + 1));
 		}
 		
