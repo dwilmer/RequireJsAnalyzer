@@ -9,7 +9,7 @@ public class DependencyMerger {
 	private Map<String, RequireJsModule> mergedTree;
 	
 	public static void main(String[] args) {
-		Extractor x = new Extractor();
+		Extractor x = new Extractor("brackets");
 		RequireJsModule rawTree = x.extractModules("brackets");
 		System.out.println(new DependencyMerger(rawTree).mergedTree.get("brackets").getTreeString(0));
 	}
