@@ -82,6 +82,7 @@ public class Html {
 			out.write("<tr><td><strong>Total</strong></td>");
 			printBar(out, totalCorrectModules, totalCorrectModules, totalModules, width);
 			printBar(out, functionTotals.getNumLocalFunctionCalls(), functionTotals.getNumLocalFunctionCalls() + functionTotals.numRequireFunctionCalls, functionTotals.getTotal(), width);
+			printBar(out, functionTotals.getNumLocalFunctionCallsUnder(40), functionTotals.getNumLocalFunctionCallsUnder(120), functionTotals.getNumLocalFunctionCalls(), width);
 			out.write("</tr></table></body></html>");
 			out.flush();
 			out.close();
