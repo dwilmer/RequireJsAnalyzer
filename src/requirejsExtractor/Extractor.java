@@ -86,8 +86,15 @@ public class Extractor {
 					module.addDependency(depModule);
 			}
 		}
+		
+		// extract function calls
 		for (Tupel<Integer, Tupel<String,String>> functionCall : results.functionCalls) {
-			module.addFunctionCall(functionCall.b.a, functionCall.b.b);
+			module.addFunctionCall(new FunctionReference(functionCall.a, functionCall.b.a, functionCall.b.b));
+		}
+		
+		// extract variable definitions
+		for (Tupel <Integer, String> definition : results.definitions) {
+			module.addVariableDefinition(definition.a, definition.b);
 		}
 		
 		return module;
