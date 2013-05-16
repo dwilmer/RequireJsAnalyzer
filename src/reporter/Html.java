@@ -5,9 +5,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
+import model.FunctionReference;
 import model.RequireJsModule;
 import requirejsExtractor.Extractor;
 
@@ -44,31 +47,36 @@ public class Html {
 			BufferedWriter out = new BufferedWriter(new FileWriter(filename));
 			out.write("<!doctype html>");
 			out.write("<html><head><title>Brackets analyzability</title><style type=\"text/css\"></style></head><body><h1>Brackets</h1>");
-			out.write("<table border=0><tr><th>Module</th><th>Module/variable naming</th></tr>");
+			out.write("<table border=0><tr><th>Module</th><th>Module/variable naming</th><th>Tracable function calls</th></tr>");
 			
 			Object[] modules = this.modules.values().toArray();
 			Arrays.sort(modules);
 			for(Object moduleO : modules) {
 				RequireJsModule module = (RequireJsModule) moduleO;
-				int numModules = 0;
-				int numCorrectModules = 0;
-				for(Entry<String, RequireJsModule> entry : module.getNamedDependencies().entrySet()) {
-					numModules++;
-					String moduleId = entry.getValue().getId();
-					String correctName = moduleId.substring(moduleId.lastIndexOf('/') + 1).toLowerCase();
-					if(entry.getKey().toLowerCase().equals(correctName)) {
-						numCorrectModules++;
-					}
-				}
-				int greenWidth = width;
+				int numModules = module.getNamedDependencies().size();
+				int numCorrectModules = getNumCorrectImports(module);
+				
+				int importsGreenWidth = width;
 				if(numModules > 0) {
-					greenWidth = (width * numCorrectModules) / numModules;
+					importsGreenWidth = (width * numCorrectModules) / numModules;
 				}
+				
+				int numFunctionCalls = module.getFunctionCalls().size();
+				int numTraceableFunctionCalls = getNumCorrectFunctionCalls(module);
+				
+				int functionsGreenWidth = width;
+				if(numFunctionCalls > 0) {
+					functionsGreenWidth = (width * numTraceableFunctionCalls) / numFunctionCalls;
+				}
+				
 				out.write("<tr><td>");
 				out.write(module.getId());
-				out.write("</td><td><img src=\"green.gif\" height=10 width=" + greenWidth + ">");
-				out.write("<img src=\"red.gif\" height=10 width=" + (width - greenWidth) + ">");
+				out.write("</td><td><img src=\"green.gif\" height=10 width=" + importsGreenWidth + ">");
+				out.write("<img src=\"red.gif\" height=10 width=" + (width - importsGreenWidth) + ">");
 				out.write(numCorrectModules + "/" + numModules);
+				out.write("</td><td><img src=\"green.gif\" height=10 width=" + functionsGreenWidth + ">");
+				out.write("<img src=\"red.gif\" height=10 width=" + (width - functionsGreenWidth) + ">");
+				out.write(numTraceableFunctionCalls + "/" + numFunctionCalls);
 				out.write("</td></tr>");
 			}
 			
@@ -78,5 +86,37 @@ public class Html {
 		} catch (IOException iox) {
 			iox.printStackTrace();
 		}
+	}
+
+	private int getNumCorrectImports(RequireJsModule module) {
+		int numCorrectModules = 0;
+		for(Entry<String, RequireJsModule> entry : module.getNamedDependencies().entrySet()) {
+			String moduleId = entry.getValue().getId();
+			String correctName = moduleId.substring(moduleId.lastIndexOf('/') + 1).toLowerCase();
+			if(entry.getKey().toLowerCase().equals(correctName)) {
+				numCorrectModules++;
+			}
+		}
+		return numCorrectModules;
+	}
+	
+	private int getNumCorrectFunctionCalls(RequireJsModule module) {
+		int numCorrectFunctionCalls = 0;
+		
+		Set<String> knownNames = new HashSet<String>(module.getNamedDependencies().keySet()); 
+		knownNames.add("require");
+		knownNames.add("exports");
+		knownNames.add("module");
+		knownNames.add("window");
+		knownNames.add("$");
+		knownNames.add("jQuery");
+		
+		for(FunctionReference ref : module.getFunctionCalls()) {
+			if(knownNames.contains(ref.getObjectName())) {
+				numCorrectFunctionCalls++;
+			}
+		}
+		
+		return numCorrectFunctionCalls;
 	}
 }
