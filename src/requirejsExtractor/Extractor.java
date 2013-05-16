@@ -17,14 +17,29 @@ import model.Tupel;
 public class Extractor {
 	private static Pattern NAMED_REQUIRE_REGEX = Pattern.compile("([a-zA-Z][a-zA-Z0-9]*)[\\s]*= require\\(\"(.*)\"\\)(\\.)?");
 	private static Pattern ANON_REQUIRE_REGEX = Pattern.compile("^[\\s]*require\\(\"(.*)\"\\)");
-	private static Pattern FUNCTIONCALL_REGEX = Pattern.compile("[\\W]([a-zA-Z$_][a-zA-Z0-9$_]*).([a-zA-Z$_][a-zA-Z0-9$_]*)\\(");
+	private static Pattern FUNCTIONCALL_REGEX = Pattern.compile("[\\s(]([a-zA-Z$_][a-zA-Z0-9$_]*)\\.([a-zA-Z$_][a-zA-Z0-9$_]*)\\(");
 	private Set<String> traversedFiles;
 	private String baseFolder;
 	
-	/**
-	 * @param args
-	 */
 	public static void main(String[] args) {
+		testFunctionCalls(args);
+	}
+	
+	private static void testFunctionCalls(String[] args) {
+		Extractor x = new Extractor("brackets/");
+		ReadResults results = x.readModule("brackets");
+		
+		System.out.println("Required:");
+		for(Tupel<String, String> required : results.dependencies) {
+			System.out.println(" - " + required.a);
+		}
+		System.out.println("Found:");
+		for(Tupel<String, String> functionCall: results.functionCalls) {
+			System.out.println(" - " + functionCall.a + "." + functionCall.b + "()");
+		}
+	}
+	
+	private static void getAndPrintDependencies(String[] args) {
 		String filename = args[0];
 		String baseFolder = "";
 		int slashIndex = filename.lastIndexOf('/'); 
