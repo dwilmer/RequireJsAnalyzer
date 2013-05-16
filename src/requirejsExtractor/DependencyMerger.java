@@ -3,6 +3,8 @@ package requirejsExtractor;
 import java.util.HashMap;
 import java.util.Map;
 
+import model.RequireJsModule;
+
 public class DependencyMerger {
 	private Map<String, RequireJsModule> mergedTree;
 	

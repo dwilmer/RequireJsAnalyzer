@@ -10,6 +10,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import model.RequireJsModule;
+
 public class Extractor {
 	private static Pattern REQUIRE_REGEX = Pattern.compile("require\\(\"(.*)\"\\)");
 	private Set<String> traversedFiles;
