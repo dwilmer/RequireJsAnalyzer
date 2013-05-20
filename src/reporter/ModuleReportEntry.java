@@ -25,6 +25,12 @@ public class ModuleReportEntry implements Comparable<ModuleReportEntry>{
 		return this.getScore() - arg0.getScore();
 	}
 	
+	public void add(ModuleReportEntry other) {
+		this.green += other.green;
+		this.yellow += other.yellow;
+		this.red += other.red;
+	}
+	
 	public int getGreen() {
 		return this.green;
 	}

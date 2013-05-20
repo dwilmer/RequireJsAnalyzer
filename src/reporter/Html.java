@@ -70,6 +70,7 @@ public class Html {
 			int threeStarBound = scores[scores.length * 65 / 100]; // 5 to 35 percent get 2 stars
 			int twoStarBound = scores[scores.length * 95 / 100];  // bottom five percent get 1 star
 			
+			ModuleReportEntry totals = new ModuleReportEntry("Total", 0, 0, 0);
 			for(ModuleReportEntry reportEntry : reportEntries) {
 				if(reportEntry.getModule().indexOf("thirdparty") == 0) {
 					continue;
@@ -91,9 +92,14 @@ public class Html {
 				out.write("</td>");
 				
 				out.write("</tr>");
-				
+				totals.add(reportEntry);
 			}
-			out.write("</table></body></html>");
+			out.write("<tr><td><strong>totals</strong></td>");
+			printBar(out, totals, width);
+			out.write("<td>");
+			int percentage = (totals.getGreen() * 100) / (totals.getGreen() + totals.getYellow() + totals.getRed());
+			out.write("" + percentage);
+			out.write("% fully tracable</td></tr></table></body></html>");
 			out.flush();
 			out.close();
 		} catch (IOException iox) {
