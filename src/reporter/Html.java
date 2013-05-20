@@ -48,7 +48,7 @@ public class Html {
 			BufferedWriter out = new BufferedWriter(new FileWriter(filename));
 			out.write("<!doctype html>");
 			out.write("<html><head><title>Brackets analyzability</title><style type=\"text/css\"></style></head><body><h1>Brackets</h1>");
-			out.write("<table border=0><tr><th>Module</th><th>Module/variable naming</th><th>Tracable function calls</th><th>Function calls less than 40/120 lines away</th></tr>");
+			out.write("<table border=0><tr><th>Module</th><th>Function call tracability</th></tr>");
 			
 			Object[] modules = this.modules.values().toArray();
 			Arrays.sort(modules);
@@ -73,16 +73,25 @@ public class Html {
 				out.write(module.getId());
 				out.write("</td>");
 				
-				printBar(out, numCorrectModules, numModules, numModules, width);
-				printBar(out, callReport.getNumLocalFunctionCalls(), callReport.getNumLocalFunctionCalls() + callReport.numRequireFunctionCalls, callReport.getTotal(), width);
-				printBar(out, callReport.getNumLocalFunctionCallsUnder(40), callReport.getNumLocalFunctionCallsUnder(120), callReport.getNumLocalFunctionCalls(), width);
+				//printBar(out, numCorrectModules, numModules, numModules, width);
+				//printBar(out, callReport.getNumLocalFunctionCalls(), callReport.getNumLocalFunctionCalls() + callReport.numRequireFunctionCalls, callReport.getTotal(), width);
+				//printBar(out, callReport.getNumLocalFunctionCallsUnder(40), callReport.getNumLocalFunctionCallsUnder(120), callReport.getNumLocalFunctionCalls(), width);
+				int green = callReport.getNumLocalFunctionCalls() + callReport.numRequireFunctionCalls;
+				int yellow = green + callReport.numRequireWrongFunctionCalls;
+				int total = yellow + callReport.numUnknownFunctionCalls;
+				printBar(out, green, yellow, total, width);
+				
 				out.write("</tr>");
 			}
 			
 			out.write("<tr><td><strong>Total</strong></td>");
-			printBar(out, totalCorrectModules, totalCorrectModules, totalModules, width);
-			printBar(out, functionTotals.getNumLocalFunctionCalls(), functionTotals.getNumLocalFunctionCalls() + functionTotals.numRequireFunctionCalls, functionTotals.getTotal(), width);
-			printBar(out, functionTotals.getNumLocalFunctionCallsUnder(40), functionTotals.getNumLocalFunctionCallsUnder(120), functionTotals.getNumLocalFunctionCalls(), width);
+//			printBar(out, totalCorrectModules, totalCorrectModules, totalModules, width);
+//			printBar(out, functionTotals.getNumLocalFunctionCalls(), functionTotals.getNumLocalFunctionCalls() + functionTotals.numRequireFunctionCalls, functionTotals.getTotal(), width);
+//			printBar(out, functionTotals.getNumLocalFunctionCallsUnder(40), functionTotals.getNumLocalFunctionCallsUnder(120), functionTotals.getNumLocalFunctionCalls(), width);
+			int green = functionTotals.getNumLocalFunctionCalls() + functionTotals.numRequireFunctionCalls;
+			int yellow = green + functionTotals.numRequireWrongFunctionCalls;
+			int total = yellow + functionTotals.numUnknownFunctionCalls;
+			printBar(out, green, yellow, total, width);
 			out.write("</tr></table></body></html>");
 			out.flush();
 			out.close();
@@ -133,7 +142,12 @@ public class Html {
 		
 		for(FunctionReference ref : module.getFunctionCalls()) {
 			if(knownNames.contains(ref.getObjectName())) {
-				report.numRequireFunctionCalls++;
+				RequireJsModule mod = module.getNamedDependencies().get(ref);
+				if(mod != null && mod.getId().toLowerCase().equals(ref.getObjectName().toLowerCase())) {
+					report.numRequireFunctionCalls++;
+				} else {
+					report.numRequireWrongFunctionCalls++;
+				}
 			} else {
 				List<Integer> defined = definitions.get(ref.getObjectName());
 				if(defined != null) {

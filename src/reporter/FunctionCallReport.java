@@ -5,23 +5,26 @@ import java.util.List;
 
 public class FunctionCallReport {
 	public int numRequireFunctionCalls;
+	public int numRequireWrongFunctionCalls;
 	public final List<Integer> localFunctionCallDistances;
 	public int numUnknownFunctionCalls;
 	
 	public FunctionCallReport() {
 		this.numRequireFunctionCalls = 0;
+		this.numRequireWrongFunctionCalls = 0;
 		this.localFunctionCallDistances = new LinkedList<Integer>();
 		this.numUnknownFunctionCalls = 0;
 	}
 	
 	public void add(FunctionCallReport other) {
 		this.numRequireFunctionCalls += other.numRequireFunctionCalls;
+		this.numRequireWrongFunctionCalls = other.numRequireWrongFunctionCalls;
 		this.localFunctionCallDistances.addAll(other.localFunctionCallDistances);
 		this.numUnknownFunctionCalls += other.numUnknownFunctionCalls;
 	}
 	
 	public int getTotal() {
-		return this.numRequireFunctionCalls + this.getNumLocalFunctionCalls() + this.numUnknownFunctionCalls;
+		return this.numRequireFunctionCalls + this.numRequireWrongFunctionCalls + this.getNumLocalFunctionCalls() + this.numUnknownFunctionCalls;
 	}
 	
 	public int getNumLocalFunctionCalls() {
