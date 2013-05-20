@@ -3,6 +3,7 @@ package reporter;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -48,51 +49,51 @@ public class Html {
 			BufferedWriter out = new BufferedWriter(new FileWriter(filename));
 			out.write("<!doctype html>");
 			out.write("<html><head><title>Brackets analyzability</title><style type=\"text/css\"></style></head><body><h1>Brackets</h1>");
-			out.write("<table border=0><tr><th>Module</th><th>Function call tracability</th></tr>");
+			out.write("<table border=0><tr><th>Module</th><th>Function call tracability</th><th>Stars</th></tr>");
 			
 			Object[] modules = this.modules.values().toArray();
-			Arrays.sort(modules);
+			List<ModuleReportEntry> reportEntries = getReportEntries(modules);
 			
-			int totalModules = 0;
-			int totalCorrectModules = 0;
-			FunctionCallReport functionTotals = new FunctionCallReport();
-			for(Object moduleO : modules) {
-				RequireJsModule module = (RequireJsModule) moduleO;
-				if(module.getId().indexOf("thirdparty") == 0) {
-					continue;
-				}
-				int numModules = module.getNamedDependencies().size();
-				int numCorrectModules = getNumCorrectImports(module);
-				totalModules += numModules;
-				totalCorrectModules += numCorrectModules;
-				
-				FunctionCallReport callReport = investigateFunctionCalls(module);
-				functionTotals.add(callReport);
-				
-				out.write("<tr><td>");
-				out.write(module.getId());
-				out.write("</td>");
-				
-				//printBar(out, numCorrectModules, numModules, numModules, width);
-				//printBar(out, callReport.getNumLocalFunctionCalls(), callReport.getNumLocalFunctionCalls() + callReport.numRequireFunctionCalls, callReport.getTotal(), width);
-				//printBar(out, callReport.getNumLocalFunctionCallsUnder(40), callReport.getNumLocalFunctionCallsUnder(120), callReport.getNumLocalFunctionCalls(), width);
-				int green = callReport.getNumLocalFunctionCalls() + callReport.numRequireFunctionCalls;
-				int yellow = green + callReport.numRequireWrongFunctionCalls;
-				int total = yellow + callReport.numUnknownFunctionCalls;
-				printBar(out, green, yellow, total, width);
-				
-				out.write("</tr>");
+			// get scores - lower is better
+			int[] scores = new int[modules.length];
+			int i = 0;
+			for(ModuleReportEntry reportEntry : reportEntries) {
+				scores[i++] = reportEntry.getScore();
 			}
 			
-			out.write("<tr><td><strong>Total</strong></td>");
-//			printBar(out, totalCorrectModules, totalCorrectModules, totalModules, width);
-//			printBar(out, functionTotals.getNumLocalFunctionCalls(), functionTotals.getNumLocalFunctionCalls() + functionTotals.numRequireFunctionCalls, functionTotals.getTotal(), width);
-//			printBar(out, functionTotals.getNumLocalFunctionCallsUnder(40), functionTotals.getNumLocalFunctionCallsUnder(120), functionTotals.getNumLocalFunctionCalls(), width);
-			int green = functionTotals.getNumLocalFunctionCalls() + functionTotals.numRequireFunctionCalls;
-			int yellow = green + functionTotals.numRequireWrongFunctionCalls;
-			int total = yellow + functionTotals.numUnknownFunctionCalls;
-			printBar(out, green, yellow, total, width);
-			out.write("</tr></table></body></html>");
+			// sort
+			Arrays.sort(scores);
+			
+			// get bounds
+			int fiveStarBound = scores[scores.length * 5 / 100]; // 65 to 95 percent get 4 stars, top five percent get 5 stars
+			int fourStarBound = scores[scores.length * 35 / 100]; // 35 to 65 percent get 3 stars
+			int threeStarBound = scores[scores.length * 65 / 100]; // 5 to 35 percent get 2 stars
+			int twoStarBound = scores[scores.length * 95 / 100];  // bottom five percent get 1 star
+			
+			for(ModuleReportEntry reportEntry : reportEntries) {
+				if(reportEntry.getModule().indexOf("thirdparty") == 0) {
+					continue;
+				}
+				
+				out.write("<tr><td>");
+				out.write(reportEntry.getModule());
+				out.write("</td>");
+				
+				printBar(out, reportEntry, width);
+				
+				out.write("<td>");
+				out.write("*");
+				int score = reportEntry.getScore();
+				if(score <= twoStarBound) out.write("*");
+				if(score <= threeStarBound) out.write("*");
+				if(score <= fourStarBound) out.write("*");
+				if(score <= fiveStarBound) out.write("*");
+				out.write("</td>");
+				
+				out.write("</tr>");
+				
+			}
+			out.write("</table></body></html>");
 			out.flush();
 			out.close();
 		} catch (IOException iox) {
@@ -100,7 +101,11 @@ public class Html {
 		}
 	}
 
-	public void printBar(BufferedWriter out, int lower, int upper, int total, int barWidth)	throws IOException {
+	private void printBar(BufferedWriter out, ModuleReportEntry reportEntry, int barWidth) throws IOException {
+		printBar(out, reportEntry.getGreen(), reportEntry.getYellow() + reportEntry.getGreen(), reportEntry.getRed() + reportEntry.getYellow() + reportEntry.getGreen(), barWidth);
+	}
+	
+	private void printBar(BufferedWriter out, int lower, int upper, int total, int barWidth) throws IOException {
 		int greenWidth = barWidth;
 		int yellowWidth = 0;
 		if(total > 0) {
@@ -112,6 +117,20 @@ public class Html {
 		out.write("<img src=\"red.gif\" height=10 width=" + ((barWidth - yellowWidth) - greenWidth) + ">");
 		out.write(lower + "/" + upper + "/" + total);
 		out.write("</td>");
+	}
+	
+	private List<ModuleReportEntry> getReportEntries(Object[] modules) {
+		Arrays.sort(modules);
+		List<ModuleReportEntry> reports = new ArrayList<ModuleReportEntry>(modules.length);
+		for(Object moduleO : modules) {
+			RequireJsModule module = (RequireJsModule) moduleO;
+			FunctionCallReport callReport = investigateFunctionCalls(module);
+			int green = callReport.getNumLocalFunctionCalls() + callReport.numRequireFunctionCalls;
+			int yellow = callReport.numRequireWrongFunctionCalls;
+			int total = callReport.numUnknownFunctionCalls;
+			reports.add(new ModuleReportEntry(module.getId(), green, yellow, total));
+		}
+		return reports;
 	}
 
 	private int getNumCorrectImports(RequireJsModule module) {
