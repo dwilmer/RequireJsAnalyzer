@@ -18,6 +18,7 @@ public class Extractor {
 	private static Pattern NAMED_REQUIRE_REGEX = Pattern.compile("([a-zA-Z][a-zA-Z0-9]*)[\\s]*= require\\(\"(.*)\"\\)(\\.)?");
 	private static Pattern ANON_REQUIRE_REGEX = Pattern.compile("^[\\s]*require\\(\"(.*)\"\\)");
 	private static Pattern FUNCTIONCALL_REGEX = Pattern.compile("[\\s(]([a-zA-Z$_][a-zA-Z0-9$_]*)\\.([a-zA-Z$_][a-zA-Z0-9$_]*)\\(");
+	private static Pattern FUNCTION_REGEX = Pattern.compile("function[\\s]?([a-zA-Z$_][a-zA-Z0-9$_]*)?\\(([a-zA-Z$_][a-zA-Z0-9$_]*(,[\\s]*[a-zA-Z$_][a-zA-Z0-9$_]*)*)?\\)");
 	private static Pattern VARDEF_REGEX = Pattern.compile("[\\s]([a-zA-Z$_][a-zA-Z0-9$_]*)[\\s]*=");
 	private Set<String> traversedFiles;
 	private String baseFolder;
@@ -140,6 +141,13 @@ public class Extractor {
 						String defined = match.group(1);
 						if(varName == null || !varName.equals(defined)) {
 							results.definitions.add(new Tupel<Integer, String>(lineNumber, match.group(1)));
+						}
+					}
+					match = FUNCTION_REGEX.matcher(line);
+					if(match.find() && match.group(2) != null && line.indexOf("define(") == -1) {
+						String[] defined = match.group(2).split(",[\\s]*");
+						for(String var : defined) {
+							results.definitions.add(new Tupel<Integer, String>(lineNumber, var));
 						}
 					}
 					
