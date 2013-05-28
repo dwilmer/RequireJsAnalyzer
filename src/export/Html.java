@@ -1,4 +1,4 @@
-package reporter;
+package export;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -12,8 +12,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+
 import model.FunctionReference;
 import model.RequireJsModule;
+import reporting.FunctionCallReport;
 import requirejsExtractor.Extractor;
 
 public class Html {
