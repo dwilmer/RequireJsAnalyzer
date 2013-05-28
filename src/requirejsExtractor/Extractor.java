@@ -15,8 +15,7 @@ import model.RequireJsModule;
 import model.Tupel;
 
 public class Extractor {
-	private static Pattern NAMED_REQUIRE_REGEX = Pattern.compile("([a-zA-Z][a-zA-Z0-9]*)[\\s]*= require\\(\"(.*)\"\\)(\\.)?");
-	private static Pattern ANON_REQUIRE_REGEX = Pattern.compile("^[\\s]*require\\(\"(.*)\"\\)");
+	
 	private static Pattern FUNCTIONCALL_REGEX = Pattern.compile("[\\s(]([a-zA-Z$_][a-zA-Z0-9$_]*)\\.([a-zA-Z$_][a-zA-Z0-9$_]*)\\(");
 	private static Pattern FUNCTION_REGEX = Pattern.compile("function[\\s]?([a-zA-Z$_][a-zA-Z0-9$_]*)?\\(([a-zA-Z$_][a-zA-Z0-9$_]*(,[\\s]*[a-zA-Z$_][a-zA-Z0-9$_]*)*)?\\)");
 	private static Pattern VARDEF_REGEX = Pattern.compile("[\\s]([a-zA-Z$_][a-zA-Z0-9$_]*)[\\s]*=");
@@ -113,35 +112,14 @@ public class Extractor {
 				line = reader.readLine();
 				lineNumber++;
 				if(line != null) {
-					String varName = null;
-					String dependency = null;
 					
-					Matcher match = NAMED_REQUIRE_REGEX.matcher(line);
-					if(match.find()) {
-						varName = match.group(1);
-						String tentativeDependency = match.group(2);
-						if(!tentativeDependency.startsWith("text!") && !tentativeDependency.startsWith("i18n!")) {
-							dependency = tentativeDependency;
-						}
-					} else {
-						match = ANON_REQUIRE_REGEX.matcher(line);
-						if(match.find()) {
-							String tentativeDependency = match.group(1);
-							if(!tentativeDependency .startsWith("text!") && !tentativeDependency.startsWith("i18n!")) {
-								dependency = tentativeDependency;
-							}
-						}
-					}
-					if(dependency != null) {
-						results.dependencies.add(new Tupel<String,String>(varName, dependency));
-					}
 					
-					match = VARDEF_REGEX.matcher(line);
+					Matcher match = VARDEF_REGEX.matcher(line);
 					if(match.find()) {
 						String defined = match.group(1);
-						if(varName == null || !varName.equals(defined)) {
+						//if(varName == null || !varName.equals(defined)) { FIXME
 							results.definitions.add(new Tupel<Integer, String>(lineNumber, match.group(1)));
-						}
+						//}
 					}
 					match = FUNCTION_REGEX.matcher(line);
 					if(match.find() && match.group(2) != null && line.indexOf("define(") == -1) {
