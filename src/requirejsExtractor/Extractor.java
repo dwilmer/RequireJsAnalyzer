@@ -8,11 +8,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import extractor.DependencyExtractor;
+import extractor.ExtractorInterface;
+import extractor.FunctionCallExtractor;
+import extractor.VariableDefinitionExtractor;
+
 import model.RequireJsModule;
-import analyzer.DependencyAnalyzer;
-import analyzer.FileAnalyzer;
-import analyzer.FunctionCallAnalyzer;
-import analyzer.VariableDefinitionAnalyzer;
 
 public class Extractor {
 	private Set<String> traversedFiles;
@@ -85,14 +86,14 @@ public class Extractor {
 		try {
 			String filename = this.baseFolder + module.getId() + ".js";
 			BufferedReader reader = new BufferedReader(new FileReader(filename));
-			List<FileAnalyzer> analyzers = this.getFileAnalyzers();
+			List<ExtractorInterface> analyzers = this.getFileAnalyzers();
 			String line = null;
 			int lineNumber = 0;
 			do {
 				line = reader.readLine();
 				lineNumber++;
 				if(line != null) {
-					for(FileAnalyzer analyzer : analyzers) {
+					for(ExtractorInterface analyzer : analyzers) {
 						analyzer.analyzeLine(line, lineNumber, module);
 					}
 				}
@@ -105,11 +106,11 @@ public class Extractor {
 		return module;
 	}
 	
-	private List<FileAnalyzer> getFileAnalyzers() {
-		List<FileAnalyzer> list = new ArrayList<FileAnalyzer>(3);
-		list.add(new DependencyAnalyzer());
-		list.add(new VariableDefinitionAnalyzer());
-		list.add(new FunctionCallAnalyzer());
+	private List<ExtractorInterface> getFileAnalyzers() {
+		List<ExtractorInterface> list = new ArrayList<ExtractorInterface>(3);
+		list.add(new DependencyExtractor());
+		list.add(new VariableDefinitionExtractor());
+		list.add(new FunctionCallExtractor());
 		return list;
 	}
 }

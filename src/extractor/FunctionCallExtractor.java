@@ -1,4 +1,4 @@
-package analyzer;
+package extractor;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 import model.FunctionReference;
 import model.RequireJsModule;
 
-public class FunctionCallAnalyzer implements FileAnalyzer {
+public class FunctionCallExtractor implements ExtractorInterface {
 	private static Pattern FUNCTIONCALL_REGEX = Pattern.compile("[\\s(]([a-zA-Z$_][a-zA-Z0-9$_]*)\\.([a-zA-Z$_][a-zA-Z0-9$_]*)\\(");
 	
 	@Override

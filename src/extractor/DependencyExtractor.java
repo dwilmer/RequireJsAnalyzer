@@ -1,11 +1,11 @@
-package analyzer;
+package extractor;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import model.RequireJsModule;
 
-public class DependencyAnalyzer implements FileAnalyzer {
+public class DependencyExtractor implements ExtractorInterface {
 	private static Pattern NAMED_REQUIRE_REGEX = Pattern.compile("([a-zA-Z][a-zA-Z0-9]*)[\\s]*= require\\(\"(.*)\"\\)(\\.)?");
 	private static Pattern ANON_REQUIRE_REGEX = Pattern.compile("^[\\s]*require\\(\"(.*)\"\\)");
 	

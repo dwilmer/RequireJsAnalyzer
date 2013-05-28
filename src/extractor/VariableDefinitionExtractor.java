@@ -1,11 +1,11 @@
-package analyzer;
+package extractor;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import model.RequireJsModule;
 
-public class VariableDefinitionAnalyzer implements FileAnalyzer {
+public class VariableDefinitionExtractor implements ExtractorInterface {
 	private static Pattern FUNCTION_REGEX = Pattern.compile("function[\\s]?([a-zA-Z$_][a-zA-Z0-9$_]*)?\\(([a-zA-Z$_][a-zA-Z0-9$_]*(,[\\s]*[a-zA-Z$_][a-zA-Z0-9$_]*)*)?\\)");
 	private static Pattern VARDEF_REGEX = Pattern.compile("[\\s]([a-zA-Z$_][a-zA-Z0-9$_]*)[\\s]*=");
 	
