@@ -3,21 +3,25 @@ package requirejsExtractor;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import analyzer.DependencyAnalyzer;
+import analyzer.FileAnalyzer;
+import analyzer.FunctionCallAnalyzer;
+import analyzer.VariableDefinitionAnalyzer;
 
 import model.FunctionReference;
 import model.RequireJsModule;
 import model.Tupel;
 
 public class Extractor {
-	
-	private static Pattern FUNCTIONCALL_REGEX = Pattern.compile("[\\s(]([a-zA-Z$_][a-zA-Z0-9$_]*)\\.([a-zA-Z$_][a-zA-Z0-9$_]*)\\(");
-	
 	private Set<String> traversedFiles;
 	private String baseFolder;
 	
@@ -73,7 +77,7 @@ public class Extractor {
 		}
 		
 		// read module
-		ReadResults results = readModule(id);
+		ReadResults results = readModule(id); //FIXME
 		
 		// extract dependencies
 		for (Tupel<String,String> dependency : results.dependencies) {
@@ -99,21 +103,20 @@ public class Extractor {
 		return module;
 	}
 	
-	private ReadResults readModule(String id) {
-		ReadResults results = new ReadResults();
+	private RequireJsModule readModule(String id) {
+		RequireJsModule module = new RequireJsModule(id);
 		try {
 			String filename = this.baseFolder + id + ".js";
 			BufferedReader reader = new BufferedReader(new FileReader(filename));
-			
+			List<FileAnalyzer> analyzers = this.getFileAnalyzers();
 			String line = null;
 			int lineNumber = 0;
 			do {
 				line = reader.readLine();
 				lineNumber++;
 				if(line != null) {
-					Matcher match = FUNCTIONCALL_REGEX.matcher(line);
-					if(match.find()) {
-						results.functionCalls.add(new Tupel<Integer, Tupel<String, String>>(lineNumber, new Tupel<String, String>(match.group(1), match.group(2))));
+					for(FileAnalyzer analyzer : analyzers) {
+						analyzer.analyzeLine(line, lineNumber, module);
 					}
 				}
 			} while (line != null);
@@ -122,6 +125,14 @@ public class Extractor {
 		} catch (IOException iox) {
 			iox.printStackTrace();
 		}
-		return results;
+		return module;
+	}
+	
+	private List<FileAnalyzer> getFileAnalyzers() {
+		List<FileAnalyzer> list = new ArrayList<FileAnalyzer>(3);
+		list.add(new DependencyAnalyzer());
+		list.add(new VariableDefinitionAnalyzer());
+		list.add(new FunctionCallAnalyzer());
+		return list;
 	}
 }
