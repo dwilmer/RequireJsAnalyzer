@@ -120,14 +120,14 @@ public class Extractor {
 					if(match.find()) {
 						varName = match.group(1);
 						String tentativeDependency = match.group(2);
-						if(!tentativeDependency.startsWith("text!") && !tentativeDependency .startsWith("i18n!")) {
+						if(!tentativeDependency.startsWith("text!") && !tentativeDependency.startsWith("i18n!")) {
 							dependency = tentativeDependency;
 						}
 					} else {
 						match = ANON_REQUIRE_REGEX.matcher(line);
 						if(match.find()) {
 							String tentativeDependency = match.group(1);
-							if(!tentativeDependency .startsWith("text!") && !tentativeDependency .startsWith("i18n!")) {
+							if(!tentativeDependency .startsWith("text!") && !tentativeDependency.startsWith("i18n!")) {
 								dependency = tentativeDependency;
 							}
 						}
