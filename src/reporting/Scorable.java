@@ -3,8 +3,8 @@ package reporting;
 import java.util.Collection;
 
 
-public abstract class Scorable {
-	public static double[] getScores(double[] percentiles, Collection<Scorable> scores) {
+public abstract class Scorable implements Comparable<Scorable> {
+	public static double[] getScores(double[] percentiles, Collection<? extends Scorable> scores) {
 		int numScores = scores.size();
 		double[] scoreList = new double[numScores];
 		int i = 0;
