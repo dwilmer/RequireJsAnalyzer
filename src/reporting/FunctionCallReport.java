@@ -17,7 +17,7 @@ public class FunctionCallReport extends Scorable{
 	
 	public void add(FunctionCallReport other) {
 		this.numRequireFunctionCalls += other.numRequireFunctionCalls;
-		this.numRequireWrongFunctionCalls = other.numRequireWrongFunctionCalls;
+		this.numRequireWrongFunctionCalls += other.numRequireWrongFunctionCalls;
 		this.numLocalFunctionCalls += other.numLocalFunctionCalls;
 		this.numUnknownFunctionCalls += other.numUnknownFunctionCalls;
 	}
