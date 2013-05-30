@@ -3,6 +3,8 @@ package requirejsExtractor;
 import java.util.HashMap;
 import java.util.Map;
 
+import extractor.Extractor;
+
 import model.RequireJsModule;
 
 public class DependencyMerger {
