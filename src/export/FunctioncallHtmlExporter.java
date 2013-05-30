@@ -41,6 +41,8 @@ public class FunctioncallHtmlExporter {
 			}
 			this.exportDetails(out, totals, true);
 			out.write("</table></body></html>");
+			out.flush();
+			out.close();
 			
 		} catch (IOException iox) {
 			iox.printStackTrace();
