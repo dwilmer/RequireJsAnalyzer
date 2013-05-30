@@ -57,17 +57,20 @@ public class FunctioncallHtmlExporter {
 		}
 		
 		out.write("<tr><td>");
+		if(isSummary) out.write("<strong>");
 		out.write(report.getId());
+		if(isSummary) out.write("</strong>");
 		out.write("</td>");
 		
 		printBar(out, report);
 		
 		out.write("<td>");
-		out.write('*');
-		for(double threshold : this.thresholds)
-			if(report.getScore() >= threshold)
-				out.write('*');
-				
+		if(!isSummary) {
+			out.write('*');
+			for(double threshold : this.thresholds)
+				if(report.getScore() >= threshold)
+					out.write('*');
+		}
 		out.write("</td>");
 		
 		out.write("</tr>");
@@ -88,7 +91,7 @@ public class FunctioncallHtmlExporter {
 		out.write("<td><img src=\"green.gif\" height=10 width=" + greenWidth + ">");
 		out.write("<img src=\"yellow.gif\" height=10 width=" + (yellowWidth) + ">");
 		out.write("<img src=\"red.gif\" height=10 width=" + ((BAR_TOTAL_WIDTH - yellowWidth) - greenWidth) + ">");
-		out.write(good + " + " + medium + " + " + bad + " = " + total);
+		out.write(good + " / " + medium + " / " + bad);
 		out.write("</td>");
 	}
 	
