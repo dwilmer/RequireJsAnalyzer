@@ -16,7 +16,7 @@ public class FunctioncallHtmlExporter {
 	
 	public FunctioncallHtmlExporter(List<FunctionCallReport> reports) {
 		this.reports = reports;
-		Collections.sort(reports);
+		Collections.sort(reports, Collections.reverseOrder());
 		double[] percentiles = {0.05,0.35,0.65,0.95};
 		this.thresholds = Scorable.getScores(percentiles, reports);
 	}
