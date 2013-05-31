@@ -17,6 +17,7 @@ public class FunctioncallHtmlExporter {
 	public FunctioncallHtmlExporter(List<FunctionCallReport> reports) {
 		this.reports = reports;
 		Collections.sort(reports, Collections.reverseOrder());
+
 		double[] percentiles = {0.05,0.35,0.65,0.95};
 		this.thresholds = Scorable.getScores(percentiles, reports);
 	}
@@ -59,9 +60,11 @@ public class FunctioncallHtmlExporter {
 		}
 		
 		out.write("<tr><td>");
+
 		if(isSummary) out.write("<strong>");
 		out.write(report.getId());
 		if(isSummary) out.write("</strong>");
+
 		out.write("</td>");
 		
 		printBar(out, report);
