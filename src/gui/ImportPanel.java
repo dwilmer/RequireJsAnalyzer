@@ -69,17 +69,23 @@ public class ImportPanel extends JPanel {
 				}
 				lblStatus.setText("Importing modules...");
 				
-				String path = importFile.getParentFile().getAbsolutePath() + "/";
-				String filename = importFile.getName();
-				String moduleName = filename.substring(0, filename.length() - 3);
+				// run in new thread to avoid blocking UI thread
+				new Thread(new Runnable() {
+					public void run() {
+						String path = importFile.getParentFile().getAbsolutePath() + "/";
+						String filename = importFile.getName();
+						String moduleName = filename.substring(0, filename.length() - 3);
+						
+						Extractor x = new Extractor(path);
+						RequireJsModule module = x.extractModules(moduleName);
+						
+						lblStatus.setText("Done!");
+						for(ImportPanelListener listener : listeners) {
+							listener.moduleImported(module);
+						}
+					}
+				}).start();
 				
-				Extractor x = new Extractor(path);
-				RequireJsModule module = x.extractModules(moduleName);
-				
-				lblStatus.setText("Done!");
-				for(ImportPanelListener listener : listeners) {
-					listener.moduleImported(module);
-				}
 			}
 		});
 	}

@@ -16,8 +16,13 @@ public class MainFrame extends JFrame {
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setVisible(true);
 		
+		ImportPanel importPanel = new ImportPanel();
+		ReportingPanel reportPanel = new ReportingPanel();
+		importPanel.addListener(reportPanel);
+		
 		this.setLayout(new BorderLayout(1, 5));
-		this.add(new ImportPanel(), BorderLayout.NORTH);
+		this.add(importPanel, BorderLayout.NORTH);
+		this.add(reportPanel);
 	}
 	
 	public static void main(String[] args) {
